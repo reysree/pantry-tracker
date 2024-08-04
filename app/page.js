@@ -22,6 +22,7 @@ import OpenAI from "openai";
 import CameraAltIcon from "@mui/icons-material/CameraAlt";
 import { firestore } from "@/firebase";
 import ReactMarkdown from "react-markdown";
+import Webcam from "react-webcam";
 
 import {
   collection,
@@ -76,7 +77,7 @@ const recipemodalStyle = {
   left: "50%",
   transform: "translate(-50%, -50%)",
   width: "90%",
-  maxWidth: "600px",
+  maxWidth: 600,
   maxHeight: "90vh",
   bgcolor: "background.paper",
   boxShadow: 24,
@@ -119,6 +120,13 @@ export default function Home() {
     } catch (error) {
       console.error("Error updating inventory: ", error);
     }
+  };
+
+  const flipCamera = () => {
+    setCameraFacingMode((prevMode) =>
+      prevMode === "user" ? "environment" : "user"
+    );
+    startCamera();
   };
 
   const addItem = async (item) => {
@@ -184,13 +192,6 @@ export default function Home() {
     } catch (error) {
       console.error("Error accessing camera: ", error);
     }
-  };
-
-  const flipCamera = () => {
-    setCameraFacingMode((prevMode) =>
-      prevMode === "user" ? "environment" : "user"
-    );
-    startCamera();
   };
 
   const captureImage = () => {
@@ -422,7 +423,13 @@ export default function Home() {
               bgcolor: "black",
             }}
           >
-            <video ref={videoRef} style={{ width: "100%", height: "auto" }} />
+            <Webcam
+              ref={videoRef}
+              audio={false}
+              screenshotFormat="image/jpeg"
+              videoConstraints={{ facingMode: cameraFacingMode }}
+              style={{ width: "100%", height: "auto" }}
+            />
           </Box>
           <canvas
             ref={canvasRef}
@@ -460,7 +467,20 @@ export default function Home() {
       </Modal>
 
       <Modal open={recipeOpen} onClose={() => setRecipeOpen(false)}>
-        <Box sx={recipemodalStyle}>
+        <Box
+          sx={{
+            position: "absolute",
+            top: "50%",
+            left: "50%",
+            transform: "translate(-50%, -50%)",
+            width: 800,
+            maxHeight: "90vh",
+            bgcolor: "background.paper",
+            boxShadow: 24,
+            p: 4,
+            borderRadius: 2,
+          }}
+        >
           <Typography variant="h6" align="center">
             AI Generated Recipe
           </Typography>
@@ -469,12 +489,12 @@ export default function Home() {
               display="flex"
               justifyContent="center"
               alignItems="center"
-              flexGrow={1}
+              height="100%"
             >
               <CircularProgress />
             </Box>
           ) : (
-            <Box sx={{ overflowY: "auto", flexGrow: 1 }}>
+            <Box sx={{ overflowY: "auto", maxHeight: "70vh" }}>
               <ReactMarkdown>{recipe}</ReactMarkdown>
             </Box>
           )}
