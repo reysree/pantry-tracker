@@ -99,6 +99,7 @@ export default function Home() {
   const [recipeOpen, setRecipeOpen] = useState(false);
   const [recipe, setRecipe] = useState("");
   const [isRecipeLoading, setIsRecipeLoading] = useState(false);
+  const [cameraFacingMode, setCameraFacingMode] = useState("user");
   const videoRef = useRef(null);
   const canvasRef = useRef(null);
 
@@ -175,12 +176,21 @@ export default function Home() {
   const startCamera = async () => {
     setCameraOpen(true);
     try {
-      const stream = await navigator.mediaDevices.getUserMedia({ video: true });
+      const stream = await navigator.mediaDevices.getUserMedia({
+        video: { facingMode: cameraFacingMode },
+      });
       videoRef.current.srcObject = stream;
       videoRef.current.play();
     } catch (error) {
       console.error("Error accessing camera: ", error);
     }
+  };
+
+  const flipCamera = () => {
+    setCameraFacingMode((prevMode) =>
+      prevMode === "user" ? "environment" : "user"
+    );
+    startCamera();
   };
 
   const captureImage = () => {
@@ -420,6 +430,14 @@ export default function Home() {
             width="640"
             height="480"
           />
+          <Button
+            fullWidth
+            variant="outlined"
+            onClick={flipCamera}
+            sx={{ mt: 2, width: "640px" }}
+          >
+            Flip Camera
+          </Button>
           {isLoading ? (
             <CircularProgress sx={{ mt: 2 }} />
           ) : (
