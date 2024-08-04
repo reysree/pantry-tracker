@@ -15,13 +15,17 @@ import {
   Box,
   Typography,
   Modal,
-  Stack,
   TextField,
   Button,
   Card,
   CardContent,
   CardActions,
+  Grid,
+  Stack,
+  IconButton,
 } from "@mui/material";
+import ArrowUpwardIcon from "@mui/icons-material/ArrowUpward";
+import ArrowDownwardIcon from "@mui/icons-material/ArrowDownward";
 
 export default function Home() {
   const [inventory, setInventory] = useState([]);
@@ -73,6 +77,15 @@ export default function Home() {
     }
   };
 
+  const removeWholeItem = async (item) => {
+    const docRef = doc(collection(firestore, "inventory"), item);
+    const docSnap = await getDoc(docRef);
+    if (docSnap.exists()) {
+      await deleteDoc(docRef);
+      updateInventory(); // To refresh the inventory after removing an item
+    }
+  };
+
   const handleOpen = () => setOpen(true);
   const handleClose = () => setOpen(false);
 
@@ -92,19 +105,25 @@ export default function Home() {
       flexDirection="column"
       bgcolor="orange"
       gap={2}
+      padding={0} // Added to remove extra padding
+      margin={0} // Added to remove extra margin
     >
       <Box
         width="100%"
         display="flex"
-        justifyContent="flex-start"
+        justifyContent="space-between" // Changed to position items
         alignItems="center"
         padding={2}
         bgcolor="#6f42c1"
         boxShadow={2}
+        margin={0} // Added to remove extra margin
       >
         <Typography variant="h4" color="white" fontWeight="bold">
           Pantry Tracker
         </Typography>
+        <Button variant="contained" onClick={handleOpen}>
+          Add / Remove Item
+        </Button>
       </Box>
 
       <Modal open={open} onClose={handleClose}>
@@ -123,7 +142,7 @@ export default function Home() {
           sx={{ transform: "translate(-50%,-50%)" }}
         >
           <Typography variant="h6" color="textPrimary" align="center">
-            Add New Item
+            Add or Remove Item
           </Typography>
           <TextField
             label="Item Name"
@@ -132,82 +151,75 @@ export default function Home() {
             value={itemName}
             onChange={(e) => setItemName(e.target.value)}
           />
-          <Button
-            variant="contained"
-            color="primary"
-            onClick={() => {
-              addItem(itemName);
-              setItemName("");
-              handleClose();
-            }}
-          >
-            Add Item
-          </Button>
+          <Stack direction="row" spacing={2}>
+            <Button
+              variant="contained"
+              color="primary"
+              onClick={() => {
+                addItem(itemName);
+                setItemName("");
+                handleClose();
+              }}
+            >
+              Add Item
+            </Button>
+            <Button
+              variant="contained"
+              color="secondary"
+              onClick={() => {
+                removeWholeItem(itemName);
+                setItemName("");
+                handleClose();
+              }}
+            >
+              Remove Item
+            </Button>
+          </Stack>
         </Box>
       </Modal>
-      <Box>
+      <Box width="100%" display="flex" justifyContent="center" padding={2}>
         <TextField
           label="Search Items"
           variant="outlined"
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
-          sx={{ bgcolor: "white", margin: 2 }}
+          sx={{ bgcolor: "white", width: "60%" }} // Adjust width as needed
         />
       </Box>
-      <Box
-        display="flex"
-        flexDirection="row"
-        alignItems="center"
-        width="62%"
-        bgcolor="#6f42c1"
-        padding={2}
-      >
-        <Typography variant="h2" color="white">
-          Inventory Items
-        </Typography>
-        <Button variant="contained" onClick={handleOpen} sx={{ marginLeft: 2 }}>
-          Add New Item
-        </Button>
-      </Box>
+
       <Box
         display="flex"
         flexDirection="column"
         alignItems="flex-start"
-        border="1px solid #333"
-        width="800px"
+        width="100%"
         overflow="auto"
-        marginLeft={2}
+        padding={0} // Added to remove extra padding
+        margin={0} // Added to remove extra margin
       >
-        <Stack width="100%" spacing={2} padding={2}>
+        <Grid container spacing={2} padding={2}>
           {filteredInventory.map(({ name, quantity }) => (
-            <Card key={name} variant="outlined" sx={{ margin: 2, padding: 2 }}>
-              <CardContent>
-                <Typography variant="h5" color="textPrimary">
-                  {name.charAt(0).toUpperCase() + name.slice(1)}
-                </Typography>
-                <Typography variant="h6" color="textSecondary">
-                  Quantity: {quantity}
-                </Typography>
-              </CardContent>
-              <CardActions>
-                <Button
-                  variant="contained"
-                  color="primary"
-                  onClick={() => addItem(name)}
-                >
-                  Add
-                </Button>
-                <Button
-                  variant="contained"
-                  color="secondary"
-                  onClick={() => removeItem(name)}
-                >
-                  Remove
-                </Button>
-              </CardActions>
-            </Card>
+            <Grid item xs={12} sm={6} md={6} lg={6} key={name}>
+              <Card variant="outlined">
+                <CardContent>
+                  <Typography variant="h5" color="textPrimary">
+                    {name.charAt(0).toUpperCase() + name.slice(1)}
+                  </Typography>
+                  <Typography variant="h6" color="textSecondary">
+                    Quantity: {quantity}
+                  </Typography>
+                </CardContent>
+                <CardActions>
+                  <IconButton color="success" onClick={() => addItem(name)}>
+                    <ArrowUpwardIcon />
+                  </IconButton>
+                  <IconButton color="error" onClick={() => removeItem(name)}>
+                    <ArrowDownwardIcon />
+                  </IconButton>
+                </CardActions>
+              </Card>
+            </Grid>
           ))}
-        </Stack>
+        </Grid>
       </Box>
     </Box>
   );
