@@ -23,6 +23,7 @@ import CameraAltIcon from "@mui/icons-material/CameraAlt";
 import { firestore } from "@/firebase";
 import ReactMarkdown from "react-markdown";
 import Webcam from "react-webcam";
+import { Camera } from "react-camera-pro";
 
 import {
   collection,
@@ -101,8 +102,10 @@ export default function Home() {
   const [recipe, setRecipe] = useState("");
   const [isRecipeLoading, setIsRecipeLoading] = useState(false);
   const [cameraFacingMode, setCameraFacingMode] = useState("user");
+  const [facingMode, setFacingMode] = useState("user");
   const videoRef = useRef(null);
   const canvasRef = useRef(null);
+  const camera = useRef(null);
 
   const updateInventory = async () => {
     try {
@@ -123,10 +126,10 @@ export default function Home() {
   };
 
   const flipCamera = () => {
-    setCameraFacingMode((prevMode) =>
-      prevMode === "user" ? "environment" : "user"
-    );
-    startCamera();
+    if (camera.current) {
+      const newMode = camera.current.switchCamera();
+      setFacingMode(newMode);
+    }
   };
 
   const addItem = async (item) => {
@@ -423,12 +426,13 @@ export default function Home() {
               bgcolor: "black",
             }}
           >
-            <Webcam
-              ref={videoRef}
-              audio={false}
-              screenshotFormat="image/jpeg"
-              videoConstraints={{ facingMode: cameraFacingMode }}
-              style={{ width: "100%", height: "auto" }}
+            <Camera
+              ref={camera}
+              aspectRatio={1}
+              facingMode={facingMode}
+              numberOfCamerasCallback={(cameras) => {
+                console.log("Number of cameras:", cameras);
+              }}
             />
           </Box>
           <canvas
