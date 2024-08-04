@@ -76,13 +76,15 @@ const recipemodalStyle = {
   left: "50%",
   transform: "translate(-50%, -50%)",
   width: "90%",
-  maxWidth: 600,
+  maxWidth: "600px",
   maxHeight: "90vh",
   bgcolor: "background.paper",
   boxShadow: 24,
   p: 4,
   borderRadius: 2,
-  overflow: "auto",
+  display: "flex",
+  flexDirection: "column",
+  overflowY: "auto",
 };
 
 export default function Home() {
@@ -440,20 +442,7 @@ export default function Home() {
       </Modal>
 
       <Modal open={recipeOpen} onClose={() => setRecipeOpen(false)}>
-        <Box
-          sx={{
-            position: "absolute",
-            top: "50%",
-            left: "50%",
-            transform: "translate(-50%, -50%)",
-            width: 800,
-            maxHeight: "90vh",
-            bgcolor: "background.paper",
-            boxShadow: 24,
-            p: 4,
-            borderRadius: 2,
-          }}
-        >
+        <Box sx={recipemodalStyle}>
           <Typography variant="h6" align="center">
             AI Generated Recipe
           </Typography>
@@ -462,12 +451,12 @@ export default function Home() {
               display="flex"
               justifyContent="center"
               alignItems="center"
-              height="100%"
+              flexGrow={1}
             >
               <CircularProgress />
             </Box>
           ) : (
-            <Box sx={{ overflowY: "auto", maxHeight: "70vh" }}>
+            <Box sx={{ overflowY: "auto", flexGrow: 1 }}>
               <ReactMarkdown>{recipe}</ReactMarkdown>
             </Box>
           )}
