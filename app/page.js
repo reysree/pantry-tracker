@@ -22,7 +22,6 @@ import OpenAI from "openai";
 import CameraAltIcon from "@mui/icons-material/CameraAlt";
 import { firestore } from "@/firebase";
 import ReactMarkdown from "react-markdown";
-import Webcam from "react-webcam";
 import { Camera } from "react-camera-pro";
 
 import {
@@ -103,7 +102,6 @@ export default function Home() {
   const [isRecipeLoading, setIsRecipeLoading] = useState(false);
   const [cameraFacingMode, setCameraFacingMode] = useState("user");
   const [facingMode, setFacingMode] = useState("user");
-  const videoRef = useRef(null);
   const canvasRef = useRef(null);
   const camera = useRef(null);
 
@@ -131,7 +129,6 @@ export default function Home() {
       setFacingMode(newMode);
     }
   };
-
   const addItem = async (item) => {
     const docRef = doc(collection(firestore, "inventory"), item.toLowerCase());
     const docSnap = await getDoc(docRef);
@@ -197,25 +194,22 @@ export default function Home() {
     }
   };
 
-  const captureImage = () => {
+  const captureImage = async () => {
     setIsLoading(true); // Show loading indicator
-
-    const context = canvasRef.current.getContext("2d");
-    context.drawImage(
-      videoRef.current,
-      0,
-      0,
-      canvasRef.current.width,
-      canvasRef.current.height
-    );
-    const dataUrl = canvasRef.current.toDataURL("image/jpeg");
-    const base64Image = dataUrl.split(",")[1];
-    processImage(base64Image); // Process the captured image
-
-    // Stop the camera stream
-    const stream = videoRef.current.srcObject;
-    const tracks = stream.getTracks();
-    tracks.forEach((track) => track.stop());
+    setIsClassifying(true);
+    try {
+      const imageSrc = camera.current.takePhoto();
+      const base64Image = imageSrc.split(",")[1];
+      await processImage(base64Image); // Process the captured image
+      console.log("Sending image to OpenAI API...");
+    } catch (error) {
+      console.error("Error capturing image:", error);
+      setErrorMessage("Failed to capture image. Please try again.");
+    } finally {
+      setIsLoading(false); // Hide loading indicator
+      setIsClassifying(false);
+      setCameraOpen(false);
+    }
   };
 
   const processImage = async (base64Image) => {
